@@ -1,8 +1,10 @@
 Flask==3.0.0
 Flask-CORS==4.0.0
+Flask-JWT-Extended==4.6.0
+psycopg2-binary==2.9.9
 docker
 PyGithub
 requests
 python-dotenv
-supabase
+bcrypt==4.1.2
 github3.py

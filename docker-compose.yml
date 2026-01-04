@@ -9,10 +9,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-    env_file:
-      - ./server/.env
+      - NEXT_PUBLIC_API_URL=http://localhost:5000
     volumes:
       - ./async-code-web:/app
       - /app/node_modules
@@ -28,13 +25,32 @@ services:
     environment:
       - FLASK_ENV=development
       - FLASK_DEBUG=True
+      - DATABASE_URL=postgresql://asynccode:asynccode_password@postgres:5432/asynccode
+      - JWT_SECRET_KEY=your-secret-key-change-in-production
     env_file:
       - ./server/.env
     volumes:
       - ./server:/app
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
+      - postgres
       - claude-automation-build
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=asynccode
+      - POSTGRES_PASSWORD=asynccode_password
+      - POSTGRES_DB=asynccode
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asynccode"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   claude-automation-build:
     build:
@@ -45,4 +61,5 @@ services:
     command: ["echo", "Claude Code automation image built"]
 
 volumes:
+  postgres_data:
   docker_socket:
