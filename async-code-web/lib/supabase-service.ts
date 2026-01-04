@@ -3,7 +3,11 @@ import { Project, Task, ProjectWithStats, ChatMessage } from '@/types'
 
 export class SupabaseService {
     private static get supabase() {
-        return getSupabase()
+        const client = getSupabase()
+        if (!client) {
+            throw new Error('Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.')
+        }
+        return client
     }
     // Project operations
     static async getProjects(): Promise<ProjectWithStats[]> {
