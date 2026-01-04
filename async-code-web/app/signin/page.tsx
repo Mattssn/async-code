@@ -1,24 +1,50 @@
 'use client'
 
-import { Auth } from '@supabase/auth-ui-react'
-import { ThemeSupa } from '@supabase/auth-ui-shared'
-import { getSupabase } from '@/lib/supabase'
-import { useAuth } from '@/contexts/auth-context'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useAuth } from '@/contexts/auth-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Code2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function SignIn() {
-    const { user, loading } = useAuth()
+    const { user, loading, login, register } = useAuth()
     const router = useRouter()
-    const supabase = getSupabase()
+    const [isRegister, setIsRegister] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [fullName, setFullName] = useState('')
 
     useEffect(() => {
         if (user && !loading) {
             router.push('/')
         }
     }, [user, loading, router])
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsSubmitting(true)
+
+        try {
+            if (isRegister) {
+                await register(email, password, fullName)
+                toast.success('Account created successfully!')
+            } else {
+                await login(email, password)
+                toast.success('Logged in successfully!')
+            }
+            router.push('/')
+        } catch (error: any) {
+            toast.error(error.message || (isRegister ? 'Registration failed' : 'Login failed'))
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
 
     if (loading) {
         return (
@@ -30,37 +56,6 @@ export default function SignIn() {
 
     if (user) {
         return null // Will redirect
-    }
-
-    // Show message if Supabase is not configured
-    if (!supabase) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
-                <Card className="w-full max-w-md">
-                    <CardHeader>
-                        <CardTitle>Authentication Not Available</CardTitle>
-                        <CardDescription>
-                            Supabase authentication is not configured
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-slate-600">
-                            To enable authentication, please set the following environment variables:
-                        </p>
-                        <ul className="mt-4 space-y-2 text-sm text-slate-600">
-                            <li>• NEXT_PUBLIC_SUPABASE_URL</li>
-                            <li>• NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
-                        </ul>
-                        <button
-                            onClick={() => router.push('/')}
-                            className="mt-6 w-full px-4 py-2 bg-slate-900 text-white rounded-md hover:bg-slate-800"
-                        >
-                            Continue without authentication
-                        </button>
-                    </CardContent>
-                </Card>
-            </div>
-        )
     }
 
     return (
@@ -75,40 +70,90 @@ export default function SignIn() {
                         Welcome to AI Code Automation
                     </h1>
                     <p className="text-slate-600">
-                        Sign in to start automating your code with Claude Code & Codex CLI
+                        {isRegister ? 'Create an account to get started' : 'Sign in to continue'}
                     </p>
                 </div>
 
                 {/* Auth Card */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Sign In</CardTitle>
+                        <CardTitle>{isRegister ? 'Create Account' : 'Sign In'}</CardTitle>
                         <CardDescription>
-                            Sign in to your account to continue
+                            {isRegister
+                                ? 'Enter your details to create your account'
+                                : 'Enter your email and password to sign in'
+                            }
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Auth
-                            supabaseClient={supabase}
-                            appearance={{
-                                theme: ThemeSupa,
-                                variables: {
-                                    default: {
-                                        colors: {
-                                            brand: '#0f172a',
-                                            brandAccent: '#1e293b',
-                                        },
-                                    },
-                                },
-                                className: {
-                                    button: 'w-full px-4 py-2 rounded-md font-medium',
-                                    input: 'w-full px-3 py-2 border border-slate-300 rounded-md',
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {isRegister && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="fullName">Full Name (Optional)</Label>
+                                    <Input
+                                        id="fullName"
+                                        type="text"
+                                        placeholder="John Doe"
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                    />
+                                </div>
+                            )}
+
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Password</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                />
+                                {isRegister && (
+                                    <p className="text-xs text-slate-500">
+                                        Password must be at least 6 characters
+                                    </p>
+                                )}
+                            </div>
+
+                            <Button
+                                type="submit"
+                                className="w-full"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting
+                                    ? (isRegister ? 'Creating account...' : 'Signing in...')
+                                    : (isRegister ? 'Create Account' : 'Sign In')
                                 }
-                            }}
-                            providers={['github']}
-                            redirectTo={typeof window !== 'undefined' ? `${window.location.origin}/` : '/'}
-                            onlyThirdPartyProviders={false}
-                        />
+                            </Button>
+                        </form>
+
+                        <div className="mt-4 text-center text-sm">
+                            <button
+                                type="button"
+                                onClick={() => setIsRegister(!isRegister)}
+                                className="text-slate-600 hover:text-slate-900 underline"
+                            >
+                                {isRegister
+                                    ? 'Already have an account? Sign in'
+                                    : "Don't have an account? Sign up"
+                                }
+                            </button>
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -121,4 +166,4 @@ export default function SignIn() {
             </div>
         </div>
     )
-} 
+}

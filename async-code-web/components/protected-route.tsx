@@ -3,7 +3,6 @@
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { getSupabase } from '@/lib/supabase'
 
 interface ProtectedRouteProps {
     children: React.ReactNode
@@ -12,14 +11,12 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
     const { user, loading } = useAuth()
     const router = useRouter()
-    const supabase = getSupabase()
 
     useEffect(() => {
-        // Only enforce authentication if Supabase is configured
-        if (supabase && !loading && !user) {
+        if (!loading && !user) {
             router.push('/signin')
         }
-    }, [user, loading, router, supabase])
+    }, [user, loading, router])
 
     if (loading) {
         return (
@@ -29,14 +26,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
         )
     }
 
-    // If Supabase is not configured, allow access without authentication
-    if (!supabase) {
-        return <>{children}</>
-    }
-
     if (!user) {
         return null // Will redirect
     }
 
     return <>{children}</>
-} 
+}
