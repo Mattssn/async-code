@@ -1,14 +1,14 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { User, Session } from '@supabase/supabase-js'
-import { getSupabase } from '@/lib/supabase'
+import { authService, User } from '@/lib/auth-service'
 
 interface AuthContextType {
     user: User | null
-    session: Session | null
     loading: boolean
-    signOut: () => Promise<void>
+    login: (email: string, password: string) => Promise<void>
+    register: (email: string, password: string, fullName?: string) => Promise<void>
+    signOut: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -27,52 +27,38 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
     const [user, setUser] = useState<User | null>(null)
-    const [session, setSession] = useState<Session | null>(null)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        const supabase = getSupabase()
-
-        // If Supabase is not configured, set loading to false and return
-        if (!supabase) {
-            setLoading(false)
-            return
-        }
-
-        // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session)
-            setUser(session?.user ?? null)
+        // Check if user is already logged in
+        authService.getCurrentUser().then((user) => {
+            setUser(user)
             setLoading(false)
         })
-
-        // Listen for auth changes
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (event, session) => {
-            setSession(session)
-            setUser(session?.user ?? null)
-            setLoading(false)
-        })
-
-        return () => subscription.unsubscribe()
     }, [])
 
-    const signOut = async () => {
-        const supabase = getSupabase()
-        if (!supabase) {
-            console.warn('Supabase not configured - cannot sign out')
-            return
-        }
-        await supabase.auth.signOut()
+    const login = async (email: string, password: string) => {
+        const { user } = await authService.login(email, password)
+        setUser(user)
+    }
+
+    const register = async (email: string, password: string, fullName?: string) => {
+        const { user } = await authService.register(email, password, fullName)
+        setUser(user)
+    }
+
+    const signOut = () => {
+        authService.logout()
+        setUser(null)
     }
 
     const value = {
         user,
-        session,
         loading,
+        login,
+        register,
         signOut,
     }
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-} 
+}
