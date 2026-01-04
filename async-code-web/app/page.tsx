@@ -20,6 +20,7 @@ import { PRStatusBadge } from "@/components/pr-status-badge";
 import { useAuth } from "@/contexts/auth-context";
 import { ApiService } from "@/lib/api-service";
 import { SupabaseService } from "@/lib/supabase-service";
+import { getSupabase } from "@/lib/supabase";
 import { Project, Task } from "@/types";
 import { ClaudeIcon } from "@/components/icon/claude";
 import { OpenAIIcon } from "@/components/icon/openai";
@@ -31,6 +32,7 @@ interface TaskWithProject extends Task {
 
 export default function Home() {
     const { user, signOut } = useAuth();
+    const supabase = getSupabase();
     const [prompt, setPrompt] = useState("");
     const [selectedProject, setSelectedProject] = useState<string>("");
     const [branch, setBranch] = useState("main");
@@ -58,11 +60,12 @@ export default function Home() {
 
     // Load initial data
     useEffect(() => {
-        if (user?.id) {
+        // Only load data if Supabase is configured and we have a user
+        if (supabase && user?.id) {
             loadProjects();
             loadTasks();
         }
-    }, [user?.id]);
+    }, [user?.id, supabase]);
 
     // Save GitHub token to localStorage whenever it changes
     useEffect(() => {
@@ -77,7 +80,8 @@ export default function Home() {
 
     // Poll task status for running tasks
     useEffect(() => {
-        if (!user?.id) return;
+        const supabase = getSupabase();
+        if (!supabase || !user?.id) return;
 
         const runningTasks = tasks.filter(task => task.status === "running" || task.status === "pending");
         if (runningTasks.length === 0) return;
@@ -347,6 +351,24 @@ export default function Home() {
             {/* Main Content */}
             <main className="container mx-auto px-6 py-8 max-w-6xl">
                 <div className="space-y-8">
+                    {/* Supabase Not Configured Warning */}
+                    {!supabase && (
+                        <Card className="border-amber-200 bg-amber-50">
+                            <CardContent className="pt-6">
+                                <div className="flex items-start gap-3">
+                                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold text-amber-900 mb-1">Database Not Configured</h3>
+                                        <p className="text-sm text-amber-800">
+                                            Supabase is not configured. Some features like project management, task history, and user authentication are disabled.
+                                            You can still use the API directly with your GitHub token.
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {/* Task Creation Section */}
                     <div className="space-y-6">
                         {/* Main Input Card */}
