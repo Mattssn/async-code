@@ -9,26 +9,28 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-    const { user, loading } = useAuth()
-    const router = useRouter()
+    // DISABLED FOR LOCAL DEVELOPMENT - No authentication required
+    // const { user, loading } = useAuth()
+    // const router = useRouter()
 
-    useEffect(() => {
-        if (!loading && !user) {
-            router.push('/signin')
-        }
-    }, [user, loading, router])
+    // useEffect(() => {
+    //     if (!loading && !user) {
+    //         router.push('/signin')
+    //     }
+    // }, [user, loading, router])
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
-            </div>
-        )
-    }
+    // if (loading) {
+    //     return (
+    //         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+    //             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
+    //         </div>
+    //     )
+    // }
 
-    if (!user) {
-        return null // Will redirect
-    }
+    // if (!user) {
+    //     return null // Will redirect
+    // }
 
+    // Just render children without auth check
     return <>{children}</>
 }

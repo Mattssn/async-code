@@ -333,14 +333,9 @@ export default function Home() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-56">
                                     <div className="p-2">
-                                        <p className="text-sm font-medium">{user?.email}</p>
-                                        <p className="text-xs text-slate-500">Signed in</p>
+                                        <p className="text-sm font-medium">{user?.email || 'Local Development'}</p>
+                                        <p className="text-xs text-slate-500">{user ? 'Signed in' : 'No authentication required'}</p>
                                     </div>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={signOut} className="gap-2 text-red-600">
-                                        <LogOut className="w-4 h-4" />
-                                        Sign Out
-                                    </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
@@ -351,23 +346,20 @@ export default function Home() {
             {/* Main Content */}
             <main className="container mx-auto px-6 py-8 max-w-6xl">
                 <div className="space-y-8">
-                    {/* Supabase Not Configured Warning */}
-                    {!supabase && (
-                        <Card className="border-amber-200 bg-amber-50">
-                            <CardContent className="pt-6">
-                                <div className="flex items-start gap-3">
-                                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                                    <div className="flex-1">
-                                        <h3 className="font-semibold text-amber-900 mb-1">Database Not Configured</h3>
-                                        <p className="text-sm text-amber-800">
-                                            Supabase is not configured. Some features like project management, task history, and user authentication are disabled.
-                                            You can still use the API directly with your GitHub token.
-                                        </p>
-                                    </div>
+                    {/* Local Development Mode Notice */}
+                    <Card className="border-blue-200 bg-blue-50">
+                        <CardContent className="pt-6">
+                            <div className="flex items-start gap-3">
+                                <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                    <h3 className="font-semibold text-blue-900 mb-1">Local Development Mode</h3>
+                                    <p className="text-sm text-blue-800">
+                                        Authentication is disabled for local development. You can use all features directly with your GitHub token.
+                                    </p>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    )}
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     {/* Task Creation Section */}
                     <div className="space-y-6">
