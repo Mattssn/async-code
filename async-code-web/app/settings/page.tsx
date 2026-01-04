@@ -61,6 +61,19 @@ export default function SettingsPage() {
                 })
             });
 
+            // Check if response is ok
+            if (!response.ok) {
+                const text = await response.text();
+                let errorMsg = text;
+                try {
+                    const errorData = JSON.parse(text);
+                    errorMsg = errorData.error || text;
+                } catch (e) {
+                    // Not JSON, use text as-is
+                }
+                throw new Error(errorMsg);
+            }
+
             const data = await response.json();
             setTokenValidation(data);
             
