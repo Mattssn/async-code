@@ -32,7 +32,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     useEffect(() => {
         const supabase = getSupabase()
-        
+
+        // If Supabase is not configured, skip authentication
+        if (!supabase) {
+            setLoading(false)
+            return
+        }
+
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session)
@@ -54,7 +60,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const signOut = async () => {
         const supabase = getSupabase()
-        await supabase.auth.signOut()
+        if (supabase) {
+            await supabase.auth.signOut()
+        }
     }
 
     const value = {
