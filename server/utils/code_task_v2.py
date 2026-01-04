@@ -144,8 +144,12 @@ def _run_ai_code_task_v2_internal(task_id: int, user_id: str, github_token: str)
         model_cli = task.get('agent', 'claude')
         
         # Get user preferences for custom environment variables
-        user = DatabaseOperations.get_user_by_id(user_id)
-        user_preferences = user.get('preferences', {}) if user else {}
+        user_preferences = {}
+        if DatabaseOperations.is_available():
+            user = DatabaseOperations.get_user_by_id(user_id)
+            user_preferences = user.get('preferences', {}) if user else {}
+        else:
+            logger.warning("Database not available - using default preferences")
         
         if user_preferences:
             logger.info(f"🔧 Found user preferences for {model_cli}: {list(user_preferences.keys())}")
