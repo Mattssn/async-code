@@ -12,6 +12,7 @@ import { Code2 } from 'lucide-react'
 export default function SignIn() {
     const { user, loading } = useAuth()
     const router = useRouter()
+    const supabase = getSupabase()
 
     useEffect(() => {
         if (user && !loading) {
@@ -29,6 +30,37 @@ export default function SignIn() {
 
     if (user) {
         return null // Will redirect
+    }
+
+    // Show message if Supabase is not configured
+    if (!supabase) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+                <Card className="w-full max-w-md">
+                    <CardHeader>
+                        <CardTitle>Authentication Not Available</CardTitle>
+                        <CardDescription>
+                            Supabase authentication is not configured
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-sm text-slate-600">
+                            To enable authentication, please set the following environment variables:
+                        </p>
+                        <ul className="mt-4 space-y-2 text-sm text-slate-600">
+                            <li>• NEXT_PUBLIC_SUPABASE_URL</li>
+                            <li>• NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
+                        </ul>
+                        <button
+                            onClick={() => router.push('/')}
+                            className="mt-6 w-full px-4 py-2 bg-slate-900 text-white rounded-md hover:bg-slate-800"
+                        >
+                            Continue without authentication
+                        </button>
+                    </CardContent>
+                </Card>
+            </div>
+        )
     }
 
     return (
@@ -57,7 +89,7 @@ export default function SignIn() {
                     </CardHeader>
                     <CardContent>
                         <Auth
-                            supabaseClient={getSupabase()}
+                            supabaseClient={supabase}
                             appearance={{
                                 theme: ThemeSupa,
                                 variables: {

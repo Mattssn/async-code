@@ -32,7 +32,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     useEffect(() => {
         const supabase = getSupabase()
-        
+
+        // If Supabase is not configured, set loading to false and return
+        if (!supabase) {
+            setLoading(false)
+            return
+        }
+
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session)
@@ -54,6 +60,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const signOut = async () => {
         const supabase = getSupabase()
+        if (!supabase) {
+            console.warn('Supabase not configured - cannot sign out')
+            return
+        }
         await supabase.auth.signOut()
     }
 
