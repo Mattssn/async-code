@@ -9,6 +9,10 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    env_file:
+      - ./server/.env
     volumes:
       - ./async-code-web:/app
       - /app/node_modules
