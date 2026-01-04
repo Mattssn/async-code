@@ -15,13 +15,21 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Docker client
-docker_client = docker.from_env()
+# Docker client (lazy-loaded)
+docker_client = None
+
+def get_docker_client():
+    """Get Docker client, initializing it if needed"""
+    global docker_client
+    if docker_client is None:
+        docker_client = docker.from_env()
+    return docker_client
 
 def cleanup_orphaned_containers():
     """Clean up orphaned AI code task containers aggressively"""
     try:
         # Get all containers with our naming pattern
-        containers = docker_client.containers.list(all=True, filters={'name': 'ai-code-task-'})
+        containers = get_docker_client().containers.list(all=True, filters={'name': 'ai-code-task-'})
         orphaned_count = 0
         current_time = time.time()
         
@@ -570,7 +578,7 @@ exit 0
         for attempt in range(max_retries):
             try:
                 logger.info(f"🔄 Container creation attempt {attempt + 1}/{max_retries}")
-                container = docker_client.containers.run(**container_kwargs)
+                container = get_docker_client().containers.run(**container_kwargs)
                 logger.info(f"✅ Container created successfully: {container.id[:12]} (name: {container_kwargs['name']})")
                 break
             except docker.errors.APIError as e:
