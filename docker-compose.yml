@@ -10,6 +10,7 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:5000
+      - BACKEND_URL=http://backend:5000
     volumes:
       - ./async-code-web:/app
       - /app/node_modules
