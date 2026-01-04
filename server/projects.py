@@ -84,7 +84,10 @@ def create_project():
             repo_owner=repo_owner,
             settings=settings
         )
-        
+
+        if not project:
+            return jsonify({'error': 'Database not available - cannot create project'}), 503
+
         return jsonify({
             'status': 'success',
             'project': project
